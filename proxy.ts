@@ -6,14 +6,13 @@ const SESSION_COOKIE_NAME = "__session";
 export const config = {
     runtime: "nodejs",
     matcher: [
-        "/verify-email",
        "/dashboard/:path*",
        "/billing",
         
     ],
 };
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
     const currentPath = req.nextUrl.pathname;
     const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
 
@@ -22,8 +21,6 @@ export async function middleware(req: NextRequest) {
     }
 
     try {
-        // `verifySessionCookie` decodes the session cookie's claims, which
-        // includes `email_verified` — no extra Admin SDK call needed for that.
         const decoded = await adminAuth.verifySessionCookie(sessionCookie, true);
 
         if (!decoded.email_verified) {

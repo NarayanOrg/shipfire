@@ -1,5 +1,5 @@
 'use client'
-import { Button } from "@/components/ui/button"
+import Header from "@/components/layouts/Header";
 import { useUserAuth } from "@/hooks/useUserAuth";
 import { useUserDoc } from "@/hooks/useUserDoc";
 
@@ -7,9 +7,11 @@ export default function Page() {
   const { data: u } = useUserAuth()
   const { data } = useUserDoc()
   return (
-    <div className="flex min-h-svh p-6">
+    <main className="min-h-screen">
+      <Header />
       {u?.email}
       {data?.account_type}
-    </div>
+      <h1>Hello</h1>
+    </main>
   )
 }

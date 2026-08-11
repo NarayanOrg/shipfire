@@ -13,7 +13,13 @@ import {
   sendPasswordResetEmail,
   GithubAuthProvider,
 } from "firebase/auth"
-import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore"
+import {
+  doc,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore"
 import { toast } from "sonner"
 import { create } from "zustand"
 
@@ -22,10 +28,9 @@ interface AuthInterface {
   error: null | string
   success: boolean
 
-  login: (formData: { email: string; password: string }) => void
-  signUp: (formData: { name: string; email: string; password: string }) => void
-  signInWithOAuth: (provider: "google" | "github") => void // You can add more providers
-  resendEmailVerification: () => void
+  login: (formData: { email: string; password: string }, redirect?: string | null) => void
+  signUp: (formData: { name: string; email: string; password: string }, redirect?: string | null) => void
+  signInWithOAuth: (provider: "google" | "github", redirect?: string | null) => void // You can add more providers
   reload: () => Promise<string | number | undefined>
   resetPassword: (email: string) => void
 
@@ -37,63 +42,85 @@ export const useAuth = create<AuthInterface>((set) => ({
   error: null,
   success: false,
 
-  login: async (formData) => {
+  login: async (formData, redirect) => {
     set({ loading: true, error: null, success: false })
     try {
-      await signInWithEmailAndPassword(auth, formData.email, formData.password)
-      toast.success("Welcome back")
+      const results = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      )
+      const user = results.user
+      const payload: NewUserInterface = {
+        name: user.displayName,
+        email: formData.email,
+        avatar: user.photoURL || null,
+        provider_id: "email",
+        account_type: "user",
+        plan: "free",
+        uid: user.uid,
+        onboarding_completed: false,
+      }
+      await addNewUserToDB(payload)
+      const idToken = await user.getIdToken()
+      await establishSession(idToken)
       set({ success: true })
-      await establishSession();
-      window.location.href = "/dashboard"
+      window.location.href = redirect ? redirect : '/dashboard'
+      toast.success("Welcome back")
     } catch (err) {
       if (err instanceof FirebaseError) {
         toast.error(err.message || "Error logging in")
-        set({ loading: false, error: err.message })
+        set({ loading: false, success: false, error: err.message })
       }
     } finally {
       set({ loading: false })
     }
   },
 
-  signUp: async (formData) => {
+  signUp: async (formData, redirect) => {
     set({ loading: true, error: null, success: false })
     try {
       const status = await validatePassword(auth, formData.password)
       if (!status.isValid) {
-        return set({
+        set({
           loading: false,
+          success: false,
           error: "Password did not meet requirements",
         })
+        return
+      } else {
+        const results = await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        )
+        await updateProfile(results.user, { displayName: formData.name })
+        const user = results.user
+
+        const payload: NewUserInterface = {
+          name: formData.name,
+          email: formData.email,
+          avatar: user.photoURL || null,
+          provider_id: "email",
+          account_type: "user",
+          plan: "free",
+          uid: user.uid,
+          onboarding_completed: false,
+        }
+
+        await sendEmailVerification(results.user)
+        await addNewUserToDB(payload)
+        const idToken = await user.getIdToken()
+        await establishSession(idToken)
+
+        set({ success: true })
+        window.location.href = redirect ? redirect : '/verify-email'
       }
-      const results = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password
-      )
-      await updateProfile(results.user, { displayName: formData.name })
-      const user = results.user
-
-      const payload: NewUserInterface = {
-        name: formData.name,
-        email: formData.email,
-        avatar: user.photoURL || null,
-        provider_id: user.providerId,
-        account_type: "user",
-        plan: "free",
-        uid: user.uid,
-        onboarding_completed: false
-      }
-
-      await sendEmailVerification(results.user)
-      await addNewUserToDB(payload)
-      await establishSession();
-
-      set({ success: true })
-      window.location.href = "/verify-email"
     } catch (err) {
       if (err instanceof FirebaseError) {
+        console.log(err)
         toast.error(err.message || "Error signing up")
-        set({ loading: false, error: err.message })
+        set({ loading: false, success: false, error: err.message })
       }
       return null
     } finally {
@@ -101,7 +128,7 @@ export const useAuth = create<AuthInterface>((set) => ({
     }
   },
 
-  signInWithOAuth: async (providerType) => {
+  signInWithOAuth: async (providerType, redirect) => {
     set({ loading: true, error: null, success: false })
     try {
       const provider =
@@ -115,39 +142,23 @@ export const useAuth = create<AuthInterface>((set) => ({
         name: user.displayName,
         email: user.email,
         avatar: user.photoURL || null,
-        provider_id: results.providerId,
+        provider_id: providerType,
         account_type: "user",
         plan: "free",
         uid: user.uid,
-        onboarding_completed: false
+        onboarding_completed: false,
       }
 
       addNewUserToDB(payload)
-      await establishSession();
+      const idToken = await user.getIdToken()
+      await establishSession(idToken)
 
-      window.location.href = "/dashboard"
+      window.location.href = redirect ? redirect : '/dashboard'
       set({ success: true })
     } catch (err) {
       if (err instanceof FirebaseError) {
         toast.error(err.message || "Error signing in with Google")
-        set({ loading: false, error: err.message })
-      }
-    } finally {
-      set({ loading: false })
-    }
-  },
-
-  resendEmailVerification: async () => {
-    try {
-      set({ loading: true, error: null, success: false })
-      if (!auth.currentUser) return toast.warning("Login to verify email")
-      await sendEmailVerification(auth.currentUser)
-      set({ success: true })
-      toast.success("Check your email")
-    } catch (err) {
-      if (err instanceof FirebaseError) {
-        toast.error(err.message || "Error resending verification")
-        set({ loading: false, error: err.message })
+        set({ loading: false, success: false, error: err.message })
       }
     } finally {
       set({ loading: false })
@@ -158,14 +169,14 @@ export const useAuth = create<AuthInterface>((set) => ({
     try {
       set({ loading: true, error: null, success: false })
       if (!auth.currentUser) return toast.warning("Login first")
-      const toastId = toast.loading("Checking verification")
-      await reload(auth.currentUser)
+        await reload(auth.currentUser)
       set({ success: true })
+      const toastId = toast.loading("Checking verification")
       return toastId
     } catch (err) {
       if (err instanceof FirebaseError) {
         toast.error(err.message || "Error reloading")
-        set({ loading: false, error: err.message })
+        set({ loading: false, success: false, error: err.message })
       }
     } finally {
       set({ loading: false })
@@ -181,7 +192,7 @@ export const useAuth = create<AuthInterface>((set) => ({
     } catch (err) {
       if (err instanceof FirebaseError) {
         toast.error(err.message || "Error resending reset password email")
-        set({ loading: false, error: err.message })
+        set({ loading: false, success: false, error: err.message })
       }
     } finally {
       set({ loading: false })
@@ -198,7 +209,7 @@ export interface NewUserInterface {
   name: string | null
   email: string | null
   avatar: string | null
-  provider_id: string | null
+  provider_id: "email" | "google" | "github"
   account_type: "user" | "admin"
   plan: "free" | "pro"
   onboarding_completed: boolean
@@ -212,7 +223,7 @@ const addNewUserToDB = async (userData: NewUserInterface) => {
 
     if (existing.exists()) {
       await updateDoc(docRef, {
-        lastSignin: serverTimestamp()
+        lastSignin: serverTimestamp(),
       })
       toast.success("Welcome back")
     } else {
@@ -230,21 +241,21 @@ const addNewUserToDB = async (userData: NewUserInterface) => {
   }
 }
 
-async function establishSession(): Promise<void> {
-    const idToken = await auth.currentUser?.getIdToken();
-    if (!idToken) return;
- 
-    const res = await fetch("/api/auth/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-    });
- 
-    if (!res.ok) {
-        throw new Error("Failed to establish session");
-    }
+async function establishSession(idToken: string): Promise<void> {
+  // const idToken = await auth.currentUser?.getIdToken()
+  if (!idToken) return
+
+  const res = await fetch("/api/auth/session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ idToken }),
+  })
+
+  if (!res.ok) {
+    throw new Error("Failed to establish session")
+  }
 }
 
 async function clearSession(): Promise<void> {
-    await fetch("/api/auth/session", { method: "DELETE" });
+  await fetch("/api/auth/session", { method: "DELETE" })
 }

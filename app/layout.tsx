@@ -4,6 +4,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils";
 import ReactQueryProvider from "@/hooks/ReactQueryProvider";
+import { Toaster } from "sonner";
 
 const robotoHeading = Roboto({subsets:['latin'],variable:'--font-heading'});
 
@@ -26,12 +27,13 @@ export default function RootLayout({
       className={cn("antialiased", fontMono.variable, "font-sans", notoSans.variable, robotoHeading.variable)}
     >
       <ReactQueryProvider>
-        <body>
+        <body suppressHydrationWarning>
           <ThemeProvider>
-            <main>
+            <main className="max-w-7xl mx-auto px-4 min-h-screen">
               {children}
             </main>
           </ThemeProvider>
+          <Toaster position="top-center" closeButton/>
         </body>
       </ReactQueryProvider>
     </html>
