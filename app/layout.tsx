@@ -1,8 +1,9 @@
-import { Geist, Geist_Mono, Noto_Sans, Roboto } from "next/font/google"
+import { Geist_Mono, Noto_Sans, Roboto } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils";
+import ReactQueryProvider from "@/hooks/ReactQueryProvider";
 
 const robotoHeading = Roboto({subsets:['latin'],variable:'--font-heading'});
 
@@ -24,9 +25,15 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", notoSans.variable, robotoHeading.variable)}
     >
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
+      <ReactQueryProvider>
+        <body>
+          <ThemeProvider>
+            <main>
+              {children}
+            </main>
+          </ThemeProvider>
+        </body>
+      </ReactQueryProvider>
     </html>
   )
 }
