@@ -99,7 +99,7 @@ export function LoginForm({
             <FieldLabel htmlFor="email">Email</FieldLabel>
             <Input
               id="email"
-              type="text"
+              type="email"
               name="email"
               onChange={(e) => setEmail(e.target.value)}
               placeholder="m@example.com"
@@ -109,7 +109,14 @@ export function LoginForm({
           </Field>
           <FieldError errors={fieldErrors.email} />
           <Field>
-            <FieldLabel htmlFor="password">Password</FieldLabel>
+            <div className="flex items-center justify-between">
+              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <Link href={'/forget-password'}>
+                <Button variant={'link'} size={'sm'}>
+                  Forgot password
+                </Button>
+              </Link>
+            </div>
             <Input
               id="password"
               type="password"
@@ -152,7 +159,7 @@ export function LoginForm({
                 <Spinner />
               ) : (
                 <>
-                  <GitHubIcon className="rounded-full bg-black" />
+                  <GitHubIcon />
                   Continue with GitHub
                 </>
               )}

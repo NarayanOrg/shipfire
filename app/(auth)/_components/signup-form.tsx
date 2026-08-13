@@ -123,7 +123,7 @@ export function SignUpForm({
             <FieldLabel htmlFor="email">Email</FieldLabel>
             <Input
               id="email"
-              type="text"
+              type="email"
               name="email"
               onChange={(e) => setEmail(e.target.value)}
               placeholder="m@example.com"
@@ -176,7 +176,7 @@ export function SignUpForm({
                 <Spinner />
               ) : (
                 <>
-                  <GitHubIcon className="rounded-full bg-black" />
+                  <GitHubIcon/>
                   Continue with GitHub
                 </>
               )}

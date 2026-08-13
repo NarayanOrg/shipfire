@@ -5,6 +5,7 @@ import { Button } from "../ui/button"
 import { useUserAuth } from "@/hooks/useUserAuth"
 import { Spinner } from "../ui/spinner"
 import UserDropdown from "../UserDropdown";
+import { ModeToggle } from "../ModeToggle";
 
 export default function Header() {
   const { data: u, isLoading: authLoading } = useUserAuth()
@@ -14,7 +15,7 @@ export default function Header() {
         <Link href={"/"} className="flex items-center gap-1 text-lg">
           <Flame size={30} />
           <span>
-            Ship<span className="text-orange-500">Fire</span>
+            Ship<span className="text-primary">Fire</span>
           </span>
         </Link>
 
@@ -29,6 +30,7 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <ModeToggle />
           {authLoading ? (
             <Spinner />
           ) : u ? (

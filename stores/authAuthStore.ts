@@ -32,7 +32,7 @@ interface AuthInterface {
   signUp: (formData: { name: string; email: string; password: string }, redirect?: string | null) => void
   signInWithOAuth: (provider: "google" | "github", redirect?: string | null) => void // You can add more providers
   reload: () => Promise<string | number | undefined>
-  resetPassword: (email: string) => void
+  forgotPassword: (email: string) => Promise<boolean | undefined>
 
   logout: () => void
 }
@@ -183,12 +183,12 @@ export const useAuth = create<AuthInterface>((set) => ({
     }
   },
 
-  resetPassword: async (email) => {
+  forgotPassword: async (email) => {
     try {
       set({ loading: true, error: null, success: false })
-      if (!auth.currentUser) return toast.warning("Login to verify email")
       await sendPasswordResetEmail(auth, email)
       set({ success: true })
+      return true
     } catch (err) {
       if (err instanceof FirebaseError) {
         toast.error(err.message || "Error resending reset password email")

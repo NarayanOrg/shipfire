@@ -99,7 +99,7 @@ export function VerifyEmailCard({
     };
 
     return (
-        <div className={cn("flex flex-col gap-6 max-w-md", className)} {...props}>
+        <div className={cn("flex flex-col gap-6 w-full max-w-sm", className)} {...props}>
             <div className="flex flex-col items-center gap-2 text-center">
                 <div className="flex size-8 items-center justify-center rounded-md">
                     <Flame className="size-6" />

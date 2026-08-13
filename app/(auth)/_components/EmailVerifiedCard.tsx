@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 export function EmailVerifiedCard() {
     const router = useRouter();
     return (
-        <div className={cn("flex flex-col gap-6")}>
+        <div className={cn("flex flex-col gap-6 w-full max-w-sm")}>
             <div className="flex flex-col items-center gap-2 text-center">
                 <div className="flex size-8 items-center justify-center rounded-md">
                     <Flame className="size-6" />
