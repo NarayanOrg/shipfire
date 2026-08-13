@@ -21,13 +21,7 @@ export default function ProtectedRoutes({
       (user) => {
         if (!user) {
           setAuthorized(false)
-          router.push(`/login?redirect=${currentPath}`)
-          return
-        }
-
-        if (!user.emailVerified) {
-          setAuthorized(false)
-          router.push(`/verify-email?redirect=${currentPath}`)
+          router.push(`/sign-in?redirect=${currentPath}`)
           return
         }
 

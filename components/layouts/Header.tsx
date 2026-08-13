@@ -4,8 +4,8 @@ import Link from "next/link"
 import { Button } from "../ui/button"
 import { useUserAuth } from "@/hooks/useUserAuth"
 import { Spinner } from "../ui/spinner"
-import UserDropdown from "../UserDropdown";
-import { ModeToggle } from "../ModeToggle";
+import UserDropdown from "../UserDropdown"
+import { ModeToggle } from "../ModeToggle"
 
 export default function Header() {
   const { data: u, isLoading: authLoading } = useUserAuth()
@@ -45,10 +45,7 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link href={"/login"}>
-                <Button variant={"outline"}>Login</Button>
-              </Link>
-              <Link href={"/sign-up"}>
+              <Link href={"/sign-in"}>
                 <Button>Get started</Button>
               </Link>
             </>

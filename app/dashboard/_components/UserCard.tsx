@@ -58,7 +58,7 @@ export default function UserCard() {
                     <AvatarFallback>{user.name?.[0]}</AvatarFallback>
                 </Avatar>
 
-                <div className="flex flex-col">
+                <div className="flex flex-col line-clamp-1">
                     <span className="font-medium text-foreground">
                         {user.name ?? "Unnamed user"}
                     </span>

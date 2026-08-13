@@ -24,7 +24,6 @@ export function useUserDoc() {
         // Wait until auth state is resolved AND confirmed signed-in before
         // firing — avoids a guaranteed 401 on every logged-out page load.
         enabled: !isAuthLoading && isAuthenticated,
-        staleTime: 60 * 1000, // 1 min — user doc doesn't change often
         retry: (failureCount, error) => {
             // Don't retry auth failures, only transient/server errors
             if (error.message.includes("Not authenticated")) return false;
