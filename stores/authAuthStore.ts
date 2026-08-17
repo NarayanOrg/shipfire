@@ -1,5 +1,4 @@
 import { auth, db } from "@/utils/firebase"
-import { QueryClient as queryClient } from "@tanstack/react-query"
 import { FirebaseError } from "firebase/app"
 import {
   GoogleAuthProvider,
